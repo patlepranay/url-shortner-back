@@ -4,6 +4,7 @@ const URLSchema = new mongoose.Schema({
   shortUrl: { type: String, required: true },
   originalUrl: { type: String, required: true },
   creator: { type: Schema.Types.ObjectId, ref: "User" },
+  createdDate: { type: Date, required: true },
 });
 
 export const UrlModel = mongoose.model("URL", URLSchema);
@@ -17,5 +18,5 @@ export const createUrl = (
   longUrl: string,
   userId: string
 ) => {
- return UrlModel.create({ shortUrl, originalUrl: longUrl, creator: userId });
+  return UrlModel.create({ shortUrl, originalUrl: longUrl, creator: userId,createdDate:Date.now() });
 };
