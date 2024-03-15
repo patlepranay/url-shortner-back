@@ -1,14 +1,16 @@
 import express from "express";
-import { createUrl, getUrl } from "../db/urls";
+import { createLink, getLinkFromDB, } from "../db/urls";
 import { shortenURL } from "../helpers";
+import { RequireAuthProp } from "@clerk/clerk-sdk-node";
 
-export const getLongUrl = async (
-  req: express.Request,
+export const getLink = async (
+  req: RequireAuthProp<express.Request>,
   res: express.Response
 ) => {
   const { url } = req.params;
+  
 
-  const urlDetails = await getUrl(url);
+  const urlDetails = await getLinkFromDB(url);
 
   if (urlDetails) {
     res.status(200).send({ message: "Succesfully fetched URL", urlDetails });
@@ -17,7 +19,7 @@ export const getLongUrl = async (
   }
 };
 
-export const createShortUrl = async (
+export const createShortLink = async (
   req: express.Request,
   res: express.Response
 ) => {
@@ -26,10 +28,10 @@ export const createShortUrl = async (
   let shortUrl: string;
   do {
     shortUrl = shortenURL(url);
-    existingUrl = await getUrl(shortUrl);
+    existingUrl = await getLinkFromDB(shortUrl);
   } while (existingUrl.length > 0);
 
-  const urlDetails = await createUrl(shortUrl, url, "65eb399134a2614d1902d4fd");
+  const urlDetails = await createLink(shortUrl, url, "65eb399134a2614d1902d4fd");
 
   if (urlDetails) {
     urlDetails.shortUrl = `${process.env.DOMAIN_NAME}/${urlDetails.shortUrl}`;
@@ -41,14 +43,14 @@ export const createShortUrl = async (
   }
 };
 
-export const createCustomShortUrl = async (
+export const createCustomShortLink = async (
   req: express.Request,
   res: express.Response
 ) => {
   const { customUrl, url } = req.body;
 
   //check if custom url exists in DB
-  const ifExists = await getUrl(customUrl);
+  const ifExists = await getLinkFromDB(customUrl);
 
   //return res for failuer
   if (ifExists.length > 0) {
@@ -58,7 +60,7 @@ export const createCustomShortUrl = async (
   }
   //return res for success
   else {
-    const urlDetails = await createUrl(
+    const urlDetails = await createLink(
       customUrl,
       url,
       "65eb399134a2614d1902d4fd"

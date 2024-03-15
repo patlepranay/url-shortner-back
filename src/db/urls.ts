@@ -9,11 +9,11 @@ const URLSchema = new mongoose.Schema({
 
 export const UrlModel = mongoose.model("URL", URLSchema);
 
-export const getUrl = (shortUrl: string) => {
-  return UrlModel.find({ shortUrl: shortUrl });
+export const getLinkFromDB = (link: string) => {
+  return UrlModel.find({ shortUrl: link });
 };
 
-export const createUrl = (
+export const createLink = (
   shortUrl: string,
   longUrl: string,
   userId: string

@@ -1,4 +1,4 @@
-import express from "express";
+import express, { NextFunction } from "express";
 
 import bodyParser from "body-parser";
 
@@ -7,6 +7,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import router from "./router";
 import "dotenv/config";
+import { Clerk, StrictAuthProp } from "@clerk/clerk-sdk-node";
 
 const app = express();
 
@@ -16,11 +17,22 @@ app.use(
   })
 );
 
+
+declare global {
+  namespace Express {
+    interface Request extends StrictAuthProp {}
+  }
+  }
 app.use(compression());
 app.use(bodyParser.json());
 
 app.use("/api", router());
 const MONGO_URL = process.env.MONGODB_URL!;
+
+app.use((err:Error, req:express.Request, res:express.Response, next:NextFunction) => {
+  console.error(err.stack)
+  res.status(401).send('Unauthenticated!')
+})
 
 app.listen(8080, () => {
   mongoose
