@@ -8,6 +8,8 @@ import mongoose from "mongoose";
 import router from "./router";
 import "dotenv/config";
 import { Clerk, StrictAuthProp } from "@clerk/clerk-sdk-node";
+import webHookRouter from "router/clerkWebHook";
+
 
 const app = express();
 
@@ -27,6 +29,9 @@ app.use(compression());
 app.use(bodyParser.json());
 
 app.use("/api", router());
+
+
+
 const MONGO_URL = process.env.MONGODB_URL!;
 
 app.use((err:Error, req:express.Request, res:express.Response, next:NextFunction) => {
