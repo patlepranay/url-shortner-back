@@ -45,6 +45,12 @@ export const clerkWebHook = async (
   const { id } = msg.data;
   const eventType = msg.type;
 
+
+  switch(msg.type)
+  {
+    case 'user.created':  
+      console.log(msg.data)
+  }
   console.log(`Webhook with an ID of ${id} and type of ${eventType}`);
   // Console log the full payload to view
   console.log("Webhook body:", msg.data);
