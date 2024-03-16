@@ -4,12 +4,14 @@ const UserSchema = new mongoose.Schema({
   userName: { type: String, required: true },
   email: { type: String, required: true },
   name: { type: String, required: true },
+  clerkUserId: { type: String, required: true },
 });
 
 export type User = {
   name: string;
   email: string;
   userName: string;
+  clerkUserId:string
 };
 
 export const UserModel = mongoose.model("User", UserSchema);

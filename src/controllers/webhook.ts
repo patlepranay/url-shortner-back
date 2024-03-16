@@ -1,13 +1,13 @@
 import { RequireAuthProp, WebhookEvent } from "@clerk/clerk-sdk-node";
 import { Webhook } from "svix";
 import express from "express";
+import { createUser } from ".././db/users";
 
 export const clerkWebHook = async (
   req: RequireAuthProp<Express.Request> | express.Request | any,
   res: express.Response
 ) => {
-
-  console.log('webhook')
+  console.log("webhook");
   // Check if the 'Signing Secret' from the Clerk Dashboard was correctly provided
   const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
   if (!WEBHOOK_SECRET) {
@@ -16,10 +16,7 @@ export const clerkWebHook = async (
 
   // Grab the headers and body
   const headers = req.headers;
-  const payload = req.body;
-
-  console.log(headers)
-  console.log(payload)
+  const payload = JSON.stringify(req.body);
 
   // Get the Svix headers for verification
   const svix_id = headers["svix-id"] as string;
@@ -34,35 +31,39 @@ export const clerkWebHook = async (
   }
 
   // Initiate Svix
- 
 
-    const wh = new Webhook(WEBHOOK_SECRET);
-    let msg:WebhookEvent;
-    try {
-        msg = wh.verify(payload, headers) as WebhookEvent;
-    } catch (err) {
-      console.log(err)
-        res.status(400).json({});
-    }
-    
-    console.log(msg)
+  const wh = new Webhook(WEBHOOK_SECRET);
+  let msg: WebhookEvent;
+  try {
+    msg = wh.verify(payload, headers) as WebhookEvent;
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({});
+  }
 
   // Grab the ID and TYPE of the Webhook
-  // const { id } = msg.data;
-  // const eventType = msg.type;
+  const { id } = msg.data;
+  const eventType = msg.type;
 
+  switch (msg.type) {
+    case "user.created": {
+      try {
+        const email = msg.data.email_addresses[0].email_address;
+        const fullName = `${msg.data.first_name} ${msg.data.last_name}`;
+        const userName = msg.data.username;
+        const clerkUserId = msg.data.id;
 
-  switch(msg.type)
-  {
-    case 'user.created':  
-      console.log(msg.data)
+        const newUser = await createUser({
+          email,
+          name: fullName,
+          userName,
+          clerkUserId,
+        });
+
+        res.sendStatus(201).json({ message: "User created in DB", newUser });
+      } catch (error) {
+        console.log(error);
+      }
+    }
   }
-  // console.log(`Webhook with an ID of ${id} and type of ${eventType}`);
-  // Console log the full payload to view
-  console.log("Webhook body:", msg.data);
-
-  return res.status(200).json({
-    success: true,
-    message: "Webhook received",
-  });
 };
