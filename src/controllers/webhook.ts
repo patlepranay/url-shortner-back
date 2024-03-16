@@ -40,10 +40,12 @@ export const clerkWebHook = async (
     } catch (err) {
         res.status(400).json({});
     }
+    
+    console.log(msg)
 
   // Grab the ID and TYPE of the Webhook
-  const { id } = msg.data;
-  const eventType = msg.type;
+  // const { id } = msg.data;
+  // const eventType = msg.type;
 
 
   switch(msg.type)
@@ -51,7 +53,7 @@ export const clerkWebHook = async (
     case 'user.created':  
       console.log(msg.data)
   }
-  console.log(`Webhook with an ID of ${id} and type of ${eventType}`);
+  // console.log(`Webhook with an ID of ${id} and type of ${eventType}`);
   // Console log the full payload to view
   console.log("Webhook body:", msg.data);
 
