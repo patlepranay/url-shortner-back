@@ -18,6 +18,8 @@ export const clerkWebHook = async (
   const headers = req.headers;
   const payload = req.body;
 
+  console.log(headers)
+
   // Get the Svix headers for verification
   const svix_id = headers["svix-id"] as string;
   const svix_timestamp = headers["svix-timestamp"] as string;
@@ -38,6 +40,7 @@ export const clerkWebHook = async (
     try {
         msg = wh.verify(payload, headers) as WebhookEvent;
     } catch (err) {
+      console.log(err)
         res.status(400).json({});
     }
     
