@@ -1,21 +1,28 @@
 import express from "express";
-import { createLink, getLinkFromDB, } from "../db/urls";
+import {
+  createLink,
+  getLinkFromDB,
+  getLinksCreateByUser as db_getLinksCreateByUser,
+  getLongLink as db_getLongLink,
+  incrementLinkVisit as db_incrementLinkVisit,
+} from "../db/urls";
 import { shortenURL } from "../helpers";
 import { RequireAuthProp } from "@clerk/clerk-sdk-node";
+import { getUsersByClerkId, getUsersByEmail } from "../db/users";
 
 export const getLink = async (
   req: RequireAuthProp<express.Request>,
   res: express.Response
 ) => {
-  const { url } = req.params;
-  
-
-  const urlDetails = await getLinkFromDB(url);
+  const { link } = req.params;
+  const urlDetails = await getLinkFromDB(link);
 
   if (urlDetails) {
-    res.status(200).send({ message: "Succesfully fetched URL", urlDetails });
+    return res
+      .status(201)
+      .send({ message: "Succesfully fetched URL", urlDetails });
   } else {
-    res.status(400).send({ message: `Couldn't find the requested URL` });
+    return res.status(400).send({ message: `Couldn't find the requested URL` });
   }
 };
 
@@ -24,22 +31,30 @@ export const createShortLink = async (
   res: express.Response
 ) => {
   const { url } = req.body;
+  const { userId } = req.auth;
+  const user = await getUsersByClerkId(userId);
+  if (!user) {
+    return res.status(401).send({ message: "Cannot verify user" });
+  }
+
   let existingUrl;
   let shortUrl: string;
-  do {
-    shortUrl = shortenURL(url);
-    existingUrl = await getLinkFromDB(shortUrl);
-  } while (existingUrl.length > 0);
-
-  const urlDetails = await createLink(shortUrl, url, "65eb399134a2614d1902d4fd");
+  const existingLink = await db_getLongLink(url, user._id.toString());
+  if (existingLink) {
+    return res
+      .status(409)
+      .send({ message: "Already short URL exists for given url" });
+  }
+  shortUrl = shortenURL(url);
+  const urlDetails = await createLink(shortUrl, url, user._id.toString());
 
   if (urlDetails) {
-    urlDetails.shortUrl = `${process.env.DOMAIN_NAME}/${urlDetails.shortUrl}`;
-    res
-      .status(200)
+    shortUrl = `${process.env.DOMAIN_NAME}/${urlDetails.shortUrl}`;
+    return res
+      .status(201)
       .send({ message: "Succesfully fetched URL", urlDetails, shortUrl });
   } else {
-    res.status(400).send({ message: `Couldn't find the requested URL` });
+    return res.status(400).send({ message: `Couldn't find the requested URL` });
   }
 };
 
@@ -72,4 +87,28 @@ export const createCustomShortLink = async (
         .send({ message: "Succesfully fetched URL", urlDetails, customUrl });
     }
   }
+};
+
+export const getLinksCreateByUser = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const { email } = req.params;
+
+    const links = await db_getLinksCreateByUser(email);
+
+    res.status(201).json({ message: "Links fetched Successfully", links });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", err });
+  }
+};
+
+export const incrementLinkVisit = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  
+  const { url } = req.body;
+  await db_incrementLinkVisit(url);
 };

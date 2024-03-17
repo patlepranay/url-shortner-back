@@ -17,6 +17,7 @@ export type User = {
 export const UserModel = mongoose.model("User", UserSchema);
 
 export const getUsersByEmail = (email: string) => UserModel.findOne({ email });
+export const getUsersByClerkId = (id: string) => UserModel.findOne({ clerkUserId:id });
 
 export const createUser = (user: User) => {
   UserModel.create(user);
