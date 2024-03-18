@@ -14,6 +14,16 @@ const URLSchema = new mongoose.Schema({
   },
 });
 
+export type Url = {
+  shortUrl: String;
+  originalUrl: string;
+  creator: string;
+  createdDate: Date;
+  isActive: boolean;
+  isInstantLink: boolean;
+  visits: Number;
+};
+
 export const UrlModel = mongoose.model("URL", URLSchema);
 
 export const getLinkFromDB = (link: string) => {
@@ -47,6 +57,14 @@ export const incrementLinkVisit = async (shortLink: string) => {
   return UrlModel.findOneAndUpdate(
     { shortUrl: shortLink },
     { $inc: { visits: 1 } }, // Increment visits by 1
+    { new: true } // Return updated document
+  );
+};
+
+export const updateLink = async (link: Url, id: string, userId: string) => {
+  return UrlModel.findOneAndUpdate(
+    { _id: id, creator: userId },
+    { link }, // Increment visits by 1
     { new: true } // Return updated document
   );
 };

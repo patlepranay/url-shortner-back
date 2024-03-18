@@ -5,6 +5,7 @@ import {
   getLinksCreateByUser as db_getLinksCreateByUser,
   getLongLink as db_getLongLink,
   incrementLinkVisit as db_incrementLinkVisit,
+  updateLink as db_updateLink,
 } from "../db/urls";
 import { shortenURL } from "../helpers";
 import { RequireAuthProp } from "@clerk/clerk-sdk-node";
@@ -17,7 +18,7 @@ export const getLink = async (
   const { link } = req.params;
   const urlDetails = await getLinkFromDB(link);
 
-  if (urlDetails) {
+  if (urlDetails.length>0) {
     return res
       .status(201)
       .send({ message: "Succesfully fetched URL", urlDetails });
@@ -108,7 +109,41 @@ export const incrementLinkVisit = async (
   req: express.Request,
   res: express.Response
 ) => {
-  
   const { url } = req.body;
   await db_incrementLinkVisit(url);
+};
+
+export const updateLink = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const { link } = req.body;
+  const { userId } = req.auth;
+
+  const user = await getUsersByClerkId(userId);
+
+  if (user && user._id == link.creator) {
+    const updatedLink = await db_updateLink(link, link.id, user._id.toString());
+
+    res.status(201).send({ message: "Link Updated", updatedLink });
+  }
+  res.send(req.auth);
+};
+
+export const checkCustomUrlAvailaibility = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const { url } = req.params;
+
+  const existingUrl = await getLinkFromDB(url);
+
+
+  res
+    .status(200)
+    .send({
+      message: existingUrl.length>0
+        ? "Custom Link already exists"
+        : "Go ahead. Link available",
+    });
 };
