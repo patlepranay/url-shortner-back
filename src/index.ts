@@ -1,21 +1,18 @@
 import express, { NextFunction } from "express";
-
 import bodyParser from "body-parser";
-
 import compression from "compression";
 import cors from "cors";
 import mongoose from "mongoose";
 import router from "./router";
 import "dotenv/config";
-import { Clerk, StrictAuthProp } from "@clerk/clerk-sdk-node";
-import webHookRouter from "router/clerkWebHook";
+import { StrictAuthProp } from "@clerk/clerk-sdk-node";
 
 const PORT = 5000 || process.env.PORT;
 const app = express();
 
 app.use(
   cors({
-    credentials: true,
+    origin: ["https://url-short-app.vercel.app/", "http://localhost:5173"],
   })
 );
 
@@ -46,7 +43,7 @@ app.listen(PORT, () => {
     .connect(MONGO_URL)
     .then(() => {
       console.log("Mongo DB Connected");
-      console.log("Server running on port "+PORT);
+      console.log("Server running on port " + PORT);
     })
     .catch((err) => console.log(err));
 });
