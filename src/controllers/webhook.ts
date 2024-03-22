@@ -38,7 +38,7 @@ export const clerkWebHook = async (
     msg = wh.verify(payload, headers) as WebhookEvent;
   } catch (err) {
     console.log(err);
-    res.status(400).json({});
+    return res.status(400).json({err});
   }
 
   // Grab the ID and TYPE of the Webhook

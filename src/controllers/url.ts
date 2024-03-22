@@ -18,7 +18,7 @@ export const getLink = async (
   const { link } = req.params;
   const urlDetails = await getLinkFromDB(link);
 
-  if (urlDetails.length>0) {
+  if (urlDetails.length > 0) {
     return res
       .status(201)
       .send({ message: "Succesfully fetched URL", urlDetails });
@@ -64,7 +64,11 @@ export const createCustomShortLink = async (
   res: express.Response
 ) => {
   const { customUrl, url } = req.body;
-
+  const { userId } = req.auth;
+  const user = await getUsersByClerkId(userId);
+  if (!user) {
+    return res.status(401).send({ message: "Cannot verify user" });
+  }
   //check if custom url exists in DB
   const ifExists = await getLinkFromDB(customUrl);
 
@@ -138,12 +142,10 @@ export const checkCustomUrlAvailaibility = async (
 
   const existingUrl = await getLinkFromDB(url);
 
-
-  res
-    .status(200)
-    .send({
-      message: existingUrl.length>0
+  res.status(200).send({
+    message:
+      existingUrl.length > 0
         ? "Custom Link already exists"
         : "Go ahead. Link available",
-    });
+  });
 };
