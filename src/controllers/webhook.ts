@@ -16,7 +16,7 @@ export const clerkWebHook = async (
 
   // Grab the headers and body
   const headers = req.headers;
-  const payload = JSON.stringify(req.body);
+  const payload = req.body;
 
   // Get the Svix headers for verification
   const svix_id = headers["svix-id"] as string;
