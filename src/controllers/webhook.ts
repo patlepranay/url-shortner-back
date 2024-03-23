@@ -16,7 +16,10 @@ export const clerkWebHook = async (
 
   // Grab the headers and body
   const headers = req.headers;
-  const payload = req.body;
+  const payload = JSON.stringify(req.body);
+
+  // console.log(headers)
+  // console.log(payload)
 
   // Get the Svix headers for verification
   const svix_id = headers["svix-id"] as string;
@@ -38,7 +41,7 @@ export const clerkWebHook = async (
     msg = wh.verify(payload, headers) as WebhookEvent;
   } catch (err) {
     console.log(err);
-    return res.status(400).json({err});
+    return res.status(400).json({message:err});
   }
 
   // Grab the ID and TYPE of the Webhook
@@ -60,9 +63,10 @@ export const clerkWebHook = async (
           clerkUserId,
         });
 
-        res.sendStatus(201).json({ message: "User created in DB", newUser });
+        return res.status(201).json({ message: "User created in DB", newUser });
       } catch (error) {
         console.log(error);
+        return res.status(400).json({message:error})
       }
     }
   }
