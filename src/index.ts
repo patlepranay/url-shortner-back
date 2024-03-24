@@ -10,8 +10,6 @@ import { StrictAuthProp } from "@clerk/clerk-sdk-node";
 const PORT = 5000 || process.env.PORT;
 const app = express();
 
-
-
 declare global {
   namespace Express {
     interface Request extends StrictAuthProp {}
@@ -22,9 +20,12 @@ app.use(bodyParser.json());
 app.use(
   cors({
     origin: ["https://url-short-app.vercel.app", "http://localhost:5173"],
-    credentials:true
+    credentials: true,
   })
 );
+app.get("/api/health", (req, res) => {
+  return res.status(200).json("healthy");
+});
 app.use("/api", router());
 const MONGO_URL = process.env.MONGODB_URL!;
 

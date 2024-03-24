@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  changeLinkStatus,
   checkCustomUrlAvailaibility,
   createCustomShortLink,
   createShortLink,
@@ -7,7 +8,6 @@ import {
   getLinksCreateByUser,
   incrementLinkVisit,
   
-  updateLink,
 } from "../controllers/url";
 import dotenv from "dotenv";
 dotenv.config();
@@ -28,7 +28,7 @@ export default (router: express.Router) => {
     ClerkExpressRequireAuth(),
     getLinksCreateByUser
   ); 
-  router.post("/updateLink", ClerkExpressRequireAuth(), updateLink);
+  router.post("/changeLinkStatus", ClerkExpressRequireAuth(), changeLinkStatus);
 
   router.get("/checkCustomUrlAvailaibility/:url",ClerkExpressRequireAuth(),checkCustomUrlAvailaibility)
 };

@@ -5,11 +5,12 @@ import {
   getLinksCreateByUser as db_getLinksCreateByUser,
   getLongLink as db_getLongLink,
   incrementLinkVisit as db_incrementLinkVisit,
-  updateLink as db_updateLink,
+  changeLinkStatus as db_changeLinkStatus,
 } from "../db/urls";
 import { shortenURL } from "../helpers";
 import { RequireAuthProp } from "@clerk/clerk-sdk-node";
 import { getUsersByClerkId, getUsersByEmail } from "../db/users";
+import { isValidObjectId } from "mongoose";
 
 export const getLink = async (
   req: RequireAuthProp<express.Request>,
@@ -31,7 +32,7 @@ export const createShortLink = async (
   req: express.Request,
   res: express.Response
 ) => {
-  const { url } = req.body;
+  const { url, customShortUrl } = req.body;
   const { userId } = req.auth;
   const user = await getUsersByClerkId(userId);
   if (!user) {
@@ -46,7 +47,8 @@ export const createShortLink = async (
       .status(409)
       .send({ message: "Already short URL exists for given url" });
   }
-  shortUrl = shortenURL(url);
+  if (!customShortUrl) shortUrl = shortenURL(url);
+  else shortUrl = customShortUrl;
   const urlDetails = await createLink(shortUrl, url, user._id.toString());
 
   if (urlDetails) {
@@ -117,21 +119,29 @@ export const incrementLinkVisit = async (
   await db_incrementLinkVisit(url);
 };
 
-export const updateLink = async (
+export const changeLinkStatus = async (
   req: express.Request,
   res: express.Response
 ) => {
-  const { link } = req.body;
-  const { userId } = req.auth;
+  try {
+    const { link } = req.body;
+    const { userId } = req.auth;
 
-  const user = await getUsersByClerkId(userId);
+    const user = await getUsersByClerkId(userId);
+    if (!user || !isValidObjectId(link._id)) {
+      return res.status(500).json({ message: "Request Error" });
+    }
 
-  if (user && user._id == link.creator) {
-    const updatedLink = await db_updateLink(link, link.id, user._id.toString());
+    if (user._id != link.creator) {
+      return res.status(403).json({ message: "Action not allowed" });
+    }
 
-    res.status(201).send({ message: "Link Updated", updatedLink });
+    const updatedLink = await db_changeLinkStatus(link);
+    return res.status(201).send({ message: "Link Updated", updatedLink });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ message: "Failed to update link." });
   }
-  res.send(req.auth);
 };
 
 export const checkCustomUrlAvailaibility = async (
