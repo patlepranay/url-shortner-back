@@ -76,7 +76,7 @@ export const getAllLinkToDeactivate = async () => {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   return UrlModel.find({
-    createdDate: {
+    updatedDate: {
       $lt: thirtyDaysAgo,
     },
   });
