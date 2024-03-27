@@ -5,7 +5,7 @@ import {
   getLinksCreateByUser as db_getLinksCreateByUser,
   getLongLink as db_getLongLink,
   incrementLinkVisit as db_incrementLinkVisit,
-  changeLinkStatus as db_changeLinkStatus,
+  updateLink as db_updateLink,
 } from "../db/urls";
 import { shortenURL } from "../helpers";
 import { RequireAuthProp } from "@clerk/clerk-sdk-node";
@@ -135,8 +135,8 @@ export const changeLinkStatus = async (
     if (user._id != link.creator) {
       return res.status(403).json({ message: "Action not allowed" });
     }
-
-    const updatedLink = await db_changeLinkStatus(link);
+    link.updatedDate = new Date();
+    const updatedLink = await db_updateLink(link);
     return res.status(201).send({ message: "Link Updated", updatedLink });
   } catch (error) {
     console.log(error);

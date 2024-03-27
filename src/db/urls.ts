@@ -6,6 +6,7 @@ const URLSchema = new mongoose.Schema({
   originalUrl: { type: String, required: true },
   creator: { type: Schema.Types.ObjectId, ref: "User" },
   createdDate: { type: Date, required: true },
+  updatedDate: { type: Date },
   isActive: { type: Boolean, required: true },
   isInstantLink: { type: Boolean, require: true },
   visits: {
@@ -20,6 +21,7 @@ export type Url = {
   originalUrl: string;
   creator: string;
   createdDate: Date;
+  updatedDate: Date;
   isActive: boolean;
   isInstantLink: boolean;
   visits: Number;
@@ -62,10 +64,24 @@ export const incrementLinkVisit = async (shortLink: string) => {
   );
 };
 
-export const changeLinkStatus = async (link: Url) => {
+export const updateLink = async (link: Url) => {
   return UrlModel.findOneAndUpdate(
     { _id: link._id, creator: link.creator },
-    { isActive: link.isActive },
+    { ...link }, // Specify the field to update
     { new: true }
   );
+};
+
+export const getAllLinkToDeactivate = async () => {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  return UrlModel.find({
+    createdDate: {
+      $lt: thirtyDaysAgo,
+    },
+  });
+};
+
+export const updateLinks = async (links: any) => {
+  return UrlModel.bulkSave([...links]);
 };

@@ -6,6 +6,8 @@ import mongoose from "mongoose";
 import router from "./router";
 import "dotenv/config";
 import { StrictAuthProp } from "@clerk/clerk-sdk-node";
+import cron from "node-cron";
+import { deActivateStaleLinks } from "./helpers";
 
 const PORT = 5000 || process.env.PORT;
 const app = express();
@@ -45,6 +47,11 @@ app.listen(PORT, () => {
   mongoose
     .connect(MONGO_URL)
     .then(() => {
+      // cron.schedule("* * * * * *", () => {
+      cron.schedule("0 0 * * *", () => {
+        console.log("running a de-activation of links every day midnight");
+        deActivateStaleLinks();
+      });
       console.log("Mongo DB Connected");
       console.log("Server running on port " + PORT);
     })
